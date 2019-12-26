@@ -61,6 +61,8 @@ def getSegs(model):
     for e in circuit_cpp_req:
         orderedVsegs.append((model.vertices[int(float(e[0]))-1], model.vertices[int(float(e[1]))-1]))
 
+    print(orderedVsegs)
+
     return orderedVsegs
 
 def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for a single draw, number of draws, scale(0..1)
