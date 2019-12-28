@@ -102,9 +102,14 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         # I order neighbours based on their arc relative to this node
         sortedNeighbours = orderNeighbours(path, neighbours)
 
+        # index of sortedNeghbours: I divide neighbours in 2 so that half are in half circle
         divisionIndexes = divideNeighbours(path, sortedNeighbours)
-        print(divisionIndexes)
-        #!!! Ad ogni passo devo risettare la aggrNindex map in modo che le occorrenze dello stesso nodo siano ordinate secondo la lista
+        #print(divisionIndexes)
+
+        # I pair neighbours so each has the other the most far possible in the circle (skipping those already connected via a loop) 
+        # this way when i cross this node i do with maximal angles
+        pairedNeighbours = pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap)
+        print(pairedNeighbours)
 
 def aggregateNodes(path):
     # from path i organize nIndexes aggregating same nIndex so that i recognize
@@ -171,8 +176,30 @@ def divideNeighbours(path, sortedNeighbours):
 
     while arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)) >= 0.5 or arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)) < 0.5:
         startIndex = (startIndex + 1) % length
-        print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
+        #print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
+
+def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
+    topHalf = []
+    bottomHalf = []
+    fullLen = len(sortedNeighbours)
+    halfLen = math.floor(len(sortedNeighbours)/2)
+
+    for i in range(halfLen):
+        topHalf.append(sortedNeighbours[(divisionIndexes[0]+i) % fullLen])
+        # bottomHalf has to be reversed (so is in the circle)
+        bottomHalf.append(sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]) 
+
+    # merge halfs getting couples (not forming a loop)
+    neighCouples = []
+    indexBottom = 0
+    while len(topHalf) > 0:
+        if loopsMap[topHalf[0]] == bottomHalf[indexBottom]:
+            indexBottom = indexBottom + 1 #they form a loop, skip
+        else:
+            neighCouples.append((topHalf.pop(0), bottomHalf.pop(indexBottom)))
+            indexBottom = 0
+    return neighCouples
 
 def arcBetween(v1, v2): # v1, v2 should be normalized
     #get a pseudo dot product for comparations that goes from 0(0°) to 1(360°)
@@ -198,13 +225,13 @@ def tests():
     #positions = [(0,0),(0,1),(1,1),(1,0)]    # positions of nodes
     #initPath = [0,1,2,3] # not closed path
 
-    #G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
-    #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
-    #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+    G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
+    positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
+    initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
 
-    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # square based on indexes
-    positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
-    initPath = [0,1,2,0,3,4,0,5,6] # not closed path
+    #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # single node with many arcs
+    #positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
+    #initPath = [0,1,2,0,3,4,0,5,6] # not closed path
 
     softPath(G, positions, initPath)
 
