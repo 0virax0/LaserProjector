@@ -89,6 +89,10 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
 
         # get every neighbour's step so I can update data directly in the list
         neighbours = getNeighbours(aggrNindex, path, nIndex, pathLen)
+        if len(neighbours) <= 2:
+            continue    # for nodes with 2 vertices I do not need scrambling
+        if len(neighbours)%2 == 1:
+            raise Exception("every node should have an even number of arcs for the graph to be eulerian")
 
         setNeighboursInfo(nIndex, path, neighbours, nodePositions)
 
@@ -98,8 +102,8 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         # I order neighbours based on their arc relative to this node
         sortedNeighbours = orderNeighbours(path, neighbours)
 
-        divisionIndex = divideNeighbours(path, sortedNeighbours)
-        print(divisionIndex)
+        divisionIndexes = divideNeighbours(path, sortedNeighbours)
+        print(divisionIndexes)
         #!!! Ad ogni passo devo risettare la aggrNindex map in modo che le occorrenze dello stesso nodo siano ordinate secondo la lista
 
 def aggregateNodes(path):
@@ -161,9 +165,6 @@ def orderNeighbours(path, neighbours):
 
 def divideNeighbours(path, sortedNeighbours):
     length = len(sortedNeighbours)
-    if length <= 2:
-        return 0
-
     startIndex = 0
     def getDir(index):
         return path[sortedNeighbours[index]].neighbourDir
@@ -171,7 +172,7 @@ def divideNeighbours(path, sortedNeighbours):
     while arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)) >= 0.5 or arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)) < 0.5:
         startIndex = (startIndex + 1) % length
         print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
-    return startIndex
+    return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def arcBetween(v1, v2): # v1, v2 should be normalized
     #get a pseudo dot product for comparations that goes from 0(0°) to 1(360°)
@@ -196,9 +197,14 @@ def tests():
     #G.add_edges_from([(0,1),(1,2),(2,3),(3,0)]) # square based on indexes
     #positions = [(0,0),(0,1),(1,1),(1,0)]    # positions of nodes
     #initPath = [0,1,2,3] # not closed path
-    G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square based on indexes
-    positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
-    initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+
+    #G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
+    #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
+    #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+
+    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # square based on indexes
+    positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
+    initPath = [0,1,2,0,3,4,0,5,6] # not closed path
 
     softPath(G, positions, initPath)
 
