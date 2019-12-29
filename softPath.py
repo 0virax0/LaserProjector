@@ -108,8 +108,13 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
 
         # I pair neighbours so each has the other the most far possible in the circle (skipping those already connected via a loop) 
         # this way when i cross this node i do with maximal angles
+        # returns a map between paired neighbours
         pairedNeighbours = pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap)
-        print(pairedNeighbours)
+        #print(pairedNeighbours)
+
+        # recreate path reversing or translating loops
+        path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
+        print("--------endnode------------")
 
 def aggregateNodes(path):
     # from path i organize nIndexes aggregating same nIndex so that i recognize
@@ -191,15 +196,52 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         bottomHalf.append(sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]) 
 
     # merge halfs getting couples (not forming a loop)
-    neighCouples = []
+    neighCouples = {}
     indexBottom = 0
     while len(topHalf) > 0:
         if loopsMap[topHalf[0]] == bottomHalf[indexBottom]:
             indexBottom = indexBottom + 1 #they form a loop, skip
         else:
-            neighCouples.append((topHalf.pop(0), bottomHalf.pop(indexBottom)))
+            n1 = topHalf.pop(0)
+            n2 = bottomHalf.pop(indexBottom)
+            if n1 not in neighCouples:
+                neighCouples[n1] = n2
+                neighCouples[n2] = n1
             indexBottom = 0
     return neighCouples
+
+def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
+    # i read steps following pairedNeighbours and add nIndex between them
+    print("prima: ",pathToIndexes(path))
+    newPath = []
+    def readThenWriteFrom(start, end):
+        if path[(start-1) % len(path)].nIndex == nIndex: #loop is in the inside
+            currIndex = start
+            while currIndex != end:
+                newPath.append(path[currIndex])
+                currIndex = (currIndex + 1) % len(path)
+        else: #loop on the outside
+            currIndex = start
+            while currIndex != end:
+                newPath.append(path[currIndex])
+                currIndex = (currIndex - 1) % len(path)
+
+        newPath.append(path[end])
+
+    nextN = next(iter(pairedNeighbours)) # get a starting neighbour
+    for _ in range(math.floor(len(pairedNeighbours.keys())/2)):
+        newPath.append(Step(nIndex, None, None))
+        readThenWriteFrom(nextN, loopsMap[nextN])
+        nextN = pairedNeighbours[loopsMap[nextN]]
+    
+    print("dopo:  ",pathToIndexes(newPath))
+    return newPath
+
+def pathToIndexes(path):
+    Gindexes = []
+    for step in path:
+        Gindexes.append(step.nIndex)
+    return Gindexes
 
 def arcBetween(v1, v2): # v1, v2 should be normalized
     #get a pseudo dot product for comparations that goes from 0(0°) to 1(360°)
