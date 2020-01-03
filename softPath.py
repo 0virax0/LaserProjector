@@ -126,20 +126,25 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         bottomHalf.append(sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]) 
 
     # merge halfs getting couples (not forming a loop)
-    neighCouples = {}
     indexBottom = 0
+    topDone = {}    # already taken neighbours from the top
+    neighCouples = {}
     while len(topHalf) > 0:
         # if current top element forms a loop with bottom or bottom forms a path with any other top element already kept
-        # skip as I cannot have a crossing inside a loop and if I have paths with top elements I short circuit
+        # skip as I cannot have a crossing inside a loop and if I have paths with top elements I short circuit (exept for last element)
         currTop = topHalf[0]
         currBottom = bottomHalf[indexBottom]
-        if loopsMap[(currTop, False)][0] == currBottom or loopsMap[(currBottom, False)] in neighCouples or loopsMap[(currBottom, True)] in neighCouples:
+        print("indexBottom: ",indexBottom, "top: ", topHalf, "bottom: ", bottomHalf ,"topDone:",topDone,"bottomOtherEnd:",loopsMap[(currBottom, False)][0])
+        if (loopsMap[(currTop, False)][0] == currBottom) or ((loopsMap[(currBottom, False)][0] in topDone or loopsMap[(currBottom, True)][0] in topDone) and len(topHalf) > 1):
             indexBottom = indexBottom + 1 #they form a loop, skip
         else:
             n1 = topHalf.pop(0)
             n2 = bottomHalf.pop(indexBottom)
+            topDone[n1] = True # save to avoid connecting a bottom node to a top done, short circuiting
             n1d = (n1, False)
             n2d = (n2, False)
+            # if I already found this neighbour I am returning from the same arc(non euclidean path), I need to 
+            # differenciate from the other so that later merge will work
             if n1d in neighCouples:
                 n1d = (n1, True)
 
