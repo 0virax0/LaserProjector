@@ -129,7 +129,11 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     neighCouples = {}
     indexBottom = 0
     while len(topHalf) > 0:
-        if loopsMap[(topHalf[0], False)][0] == bottomHalf[indexBottom]:
+        # if current top element forms a loop with bottom or bottom forms a path with any other top element already kept
+        # skip as I cannot have a crossing inside a loop and if I have paths with top elements I short circuit
+        currTop = topHalf[0]
+        currBottom = bottomHalf[indexBottom]
+        if loopsMap[(currTop, False)][0] == currBottom or loopsMap[(currBottom, False)] in neighCouples or loopsMap[(currBottom, True)] in neighCouples:
             indexBottom = indexBottom + 1 #they form a loop, skip
         else:
             n1 = topHalf.pop(0)
@@ -144,7 +148,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
 
             neighCouples[n1d] = n2d
             neighCouples[n2d] = n1d
-            #print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
+            print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
             indexBottom = 0
     return neighCouples
 
