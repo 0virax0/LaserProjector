@@ -10,72 +10,16 @@ import numpy as np
 import math
 import networkx as nx
 
-#class Step:
-   #def __init__(self, nIndex = None, prevS = None, nextS = None, neighbourDir = None, neighbourArc = None):
-        #self.nIndex = nIndex # index of the node
-        #self.neighbourDir = neighbourDir # here I store temporarily my position relative to the node I am analyzing
-        #self.neighbourArc = neighbourArc # temporary arc formed with analyzing node
-        #self.prevS = prevS    
-        #self.nextS = nextS
-
-
 class Step:
    def __init__(self, nIndex = None, neighbourDir = None, neighbourArc = None):
         self.nIndex = nIndex # index of the node
         self.neighbourDir = neighbourDir # here I store temporarily my position relative to the node I am analyzing
         self.neighbourArc = neighbourArc # temporary arc formed with analyzing node
 
-class Path:
-    def __init__(self, step = None, length = 0):
-        self.head = step
-        self.length = length
-    
-    def insertBetween(self, newStep, step1, step2):
-        if step1 is None and step2 is None:
-            return
-
-        newStep.prevS = step1
-        if step1 is not None:
-            step1.nextS = newStep
-        newStep.nextS = step2
-        if step2 is not None:
-            step2.nextS = newStep
-        
-    def estract(self, step):
-        if step.prevS is not None:
-            step.prevS.nextS = step.nextS
-        if step.nextS is not None:
-            step.nextS.prevS = step.prevS
-        
-        step.prevS = None
-        step.nextS = None
-
-    def print(self):
-        node = self.head
-        while (node is not None):
-          print(node.data),
-          node = node.next
-
 def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex indexes and list of node positions ordered by index in the graph
     # construct Path double linked list from initPath
     if len(initPath) <= 1:
         return
-    
-    #path = Path()
-    #preparedNode = None 
-    #for index in initPath:
-        #newNode = Step(index, preparedNode, None, None, None)
-        #if preparedNode is not None:
-            #preparedNode.nextS = newNode
-        #newNode.prevS = preparedNode
-        #preparedNode = newNode
-        ##first node
-        #if path.head is None:
-            #path.head = newNode
-    ## closing the list in a loop
-    #preparedNode.nextS = path.head
-    #path.head.prevS = preparedNode
-    #path.length = len(initPath) # set list total length
 
     path = []
     for nIndex in initPath:
@@ -85,14 +29,12 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
     # for each node get its data and that of all neighbours
     for nIndex, _ in graph.adj.items():
         # aggregate nodes positions in the path (may have scrumbled from previous step and I need them in order)
-        aggrNindex = aggregateNodes(path) # nIndex(index of the node in graph) : i (index of step in the path)
+        aggrNindex = aggregateNode(path, nIndex) # find every occurrence of the node in path and return the index
 
         # get every neighbour's step so I can update data directly in the list
-        neighbours = getNeighbours(aggrNindex, path, nIndex, pathLen)
+        neighbours = getNeighbours(aggrNindex, path, pathLen)
         if len(neighbours) <= 2:
-            continue    # for nodes with 2 vertices I do not need scrambling
-        if len(neighbours)%2 == 1:
-            raise Exception("every node should have an even number of arcs for the graph to be eulerian")
+            continue    # for nodes with 2 arcs I do not need scrambling
 
         setNeighboursInfo(nIndex, path, neighbours, nodePositions)
 
@@ -110,40 +52,24 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         # this way when i cross this node i do with maximal angles
         # returns a map between paired neighbours
         pairedNeighbours = pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap)
-        #print(pairedNeighbours)
 
         # recreate path reversing or translating loops
         path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
         print("--------endnode------------")
 
-def aggregateNodes(path):
-    # from path i organize nIndexes aggregating same nIndex so that i recognize
+def aggregateNode(path, nIndex):
+    # from path I organize nIndexes aggregating same nIndex so that I recognize
     # every time I pass on that node
-    aggrNindex = {} # nIndex: (index of the node in graph)
-    #currStep = path.head
-    #for _ in range(path.length):
-        #if currStep.nIndex not in aggrNindex:
-            #aggrNindex[currStep.nIndex] = [currStep] 
-        #else:
-            #aggrNindex[currStep.nIndex].append(currStep)
-
-        #currStep = currStep.nextS
+    aggrNindex = [] 
     for i, step in enumerate(path):
-        if step.nIndex not in aggrNindex:
-            aggrNindex[step.nIndex] = [i] 
-        else:
-            aggrNindex[step.nIndex].append(i)
+        if step.nIndex == nIndex:
+            aggrNindex.append(i)
     
     return aggrNindex
 
-def getNeighbours(aggrNindexTable, path, nIndex, pathLen):
+def getNeighbours(aggrNindex, path, pathLen):
     neighbours = [] # pointers to their steps
-    #for reencouter in aggrNindexTable[nIndex]:
-        #if reencouter.prevS is not None:
-            #neighbours.append(reencouter.prevS)
-        #if reencouter.nextS is not None:
-            #neighbours.append(reencouter.nextS)
-    for reencouter in aggrNindexTable[nIndex]:
+    for reencouter in aggrNindex:
         neighbours.append((reencouter-1) % pathLen)
         neighbours.append((reencouter+1) % pathLen)
     
@@ -165,8 +91,12 @@ def getLoops(path, neighbours):
     for i in range(int((len(neighbours))/2)):
         # ends reside one next to the other starting from the second element
         ends = (neighbours[(i*2+1) % len(neighbours)], neighbours[(i*2+2) % len(neighbours)])
-        loopsMap[ends[0]] = ends[1]
-        loopsMap[ends[1]] = ends[0]
+        if ends[0] == ends[1]: # distinguish duplicates so it works even if cicle is not eulerian
+            loopsMap[(ends[0], False)] = (ends[0], True)
+            loopsMap[(ends[0], True)] = (ends[0], False)
+        else:
+            loopsMap[(ends[0], False)] = (ends[1], False)
+            loopsMap[(ends[1], False)] = (ends[0], False)
 
     return loopsMap
 
@@ -199,14 +129,22 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     neighCouples = {}
     indexBottom = 0
     while len(topHalf) > 0:
-        if loopsMap[topHalf[0]] == bottomHalf[indexBottom]:
+        if loopsMap[(topHalf[0], False)][0] == bottomHalf[indexBottom]:
             indexBottom = indexBottom + 1 #they form a loop, skip
         else:
             n1 = topHalf.pop(0)
             n2 = bottomHalf.pop(indexBottom)
-            if n1 not in neighCouples:
-                neighCouples[n1] = n2
-                neighCouples[n2] = n1
+            n1d = (n1, False)
+            n2d = (n2, False)
+            if n1d in neighCouples:
+                n1d = (n1, True)
+
+            if n2d in neighCouples:
+                n2d = (n2, True)
+
+            neighCouples[n1d] = n2d
+            neighCouples[n2d] = n1d
+            #print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
             indexBottom = 0
     return neighCouples
 
@@ -215,23 +153,25 @@ def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
     print("prima: ",pathToIndexes(path))
     newPath = []
     def readThenWriteFrom(start, end):
-        if path[(start-1) % len(path)].nIndex == nIndex: #loop is in the inside
-            currIndex = start
-            while currIndex != end:
-                newPath.append(path[currIndex])
-                currIndex = (currIndex + 1) % len(path)
-        else: #loop on the outside
-            currIndex = start
-            while currIndex != end:
-                newPath.append(path[currIndex])
-                currIndex = (currIndex - 1) % len(path)
+        if start != end:
+            if path[(start-1) % len(path)].nIndex == nIndex: #loop is in the inside
+                currIndex = start
+                while currIndex != end:
+                    newPath.append(path[currIndex])
+                    currIndex = (currIndex + 1) % len(path)
+            else: #loop on the outside
+                currIndex = start
+                while currIndex != end:
+                    newPath.append(path[currIndex])
+                    currIndex = (currIndex - 1) % len(path)
 
         newPath.append(path[end])
 
     nextN = next(iter(pairedNeighbours)) # get a starting neighbour
     for _ in range(math.floor(len(pairedNeighbours.keys())/2)):
+        print(nextN)
         newPath.append(Step(nIndex, None, None))
-        readThenWriteFrom(nextN, loopsMap[nextN])
+        readThenWriteFrom(nextN[0], loopsMap[nextN][0])
         nextN = pairedNeighbours[loopsMap[nextN]]
     
     print("dopo:  ",pathToIndexes(newPath))
@@ -267,14 +207,17 @@ def tests():
     #positions = [(0,0),(0,1),(1,1),(1,0)]    # positions of nodes
     #initPath = [0,1,2,3] # not closed path
 
-    G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
-    positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
-    initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+    #G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
+    #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
+    #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
 
     #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # single node with many arcs
     #positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
     #initPath = [0,1,2,0,3,4,0,5,6] # not closed path
 
+    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
+    positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
+    initPath = [0,1,2,0,3,0,4,0,5] 
     softPath(G, positions, initPath)
 
 tests()
