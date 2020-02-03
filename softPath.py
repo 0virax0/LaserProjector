@@ -92,6 +92,7 @@ def getLoops(path, neighbours):
         # ends reside one next to the other starting from the second element
         ends = (neighbours[(i*2+1) % len(neighbours)], neighbours[(i*2+2) % len(neighbours)])
         if ends[0] == ends[1]: # distinguish duplicates so it works even if cicle is not eulerian
+                               # as both ands will be the same
             loopsMap[(ends[0], False)] = (ends[0], True)
             loopsMap[(ends[0], True)] = (ends[0], False)
         else:
@@ -125,37 +126,53 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         # bottomHalf has to be reversed (so is in the circle)
         bottomHalf.append(sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]) 
 
+    # Connect nodes in the top half with those on the bottom half so that including already present semi-loops
+    # I form a complete tour of the nodes without short circuiting. Doing so I try to maximize angles formed
+    # by keeping nodes with the same index (top and bottom) nearby.
+    # To do so I use an euristic: set first and last node first as they can form the narrowest angles with 
+    # other nodes, then the others. To not form a short circuit I create incomplete paths that will be merged
+    # on every step in a divide and conquer manner 
+
+    # at every step keep only not already connected nodes on top and bottom lists
+    # at every step copy current lists so I can remove also the ends of the loops (for not short circuiting)
+    stepTop = []
+    stepBottom = []
+
+    while len(topHalf) > 1 and len(bottomHalf) > 1 :
+       stepTop = topHalf.copy() 
+       stepBottom = bottomHalf.copy() 
+
     # merge halfs getting couples (not forming a loop)
-    indexBottom = 0
-    topDone = {}    # already taken neighbours from the top
-    neighCouples = {}
-    while len(topHalf) > 0:
-        # if current top element forms a loop with bottom or bottom forms a path with any other top element already kept
-        # skip as I cannot have a crossing inside a loop and if I have paths with top elements I short circuit (exept for last element)
-        currTop = topHalf[0]
-        currBottom = bottomHalf[indexBottom]
-        print("indexBottom: ",indexBottom, "top: ", topHalf, "bottom: ", bottomHalf ,"topDone:",topDone,"bottomOtherEnd:",loopsMap[(currBottom, False)][0])
-        if (loopsMap[(currTop, False)][0] == currBottom) or ((loopsMap[(currBottom, False)][0] in topDone or loopsMap[(currBottom, True)][0] in topDone) and len(topHalf) > 1):
-            indexBottom = indexBottom + 1 #they form a loop, skip
-        else:
-            n1 = topHalf.pop(0)
-            n2 = bottomHalf.pop(indexBottom)
-            topDone[n1] = True # save to avoid connecting a bottom node to a top done, short circuiting
-            n1d = (n1, False)
-            n2d = (n2, False)
-            # if I already found this neighbour I am returning from the same arc(non euclidean path), I need to 
-            # differenciate from the other so that later merge will work
-            if n1d in neighCouples:
-                n1d = (n1, True)
+    #indexBottom = 0
+    #topDone = {}    # already taken neighbours from the top
+    #neighCouples = {}
+    #while len(topHalf) > 0:
+        ## if current top element forms a loop with bottom or bottom forms a path with any other top element already kept
+        ## skip as I cannot have a crossing inside a loop and if I have paths with top elements I short circuit (exept for last element)
+        #currTop = topHalf[0]
+        #currBottom = bottomHalf[indexBottom]
+        #print("indexBottom: ",indexBottom, "top: ", topHalf, "bottom: ", bottomHalf ,"topDone:",topDone,"bottomOtherEnd:",loopsMap[(currBottom, False)][0])
+        #if (loopsMap[(currTop, False)][0] == currBottom) or ((loopsMap[(currBottom, False)][0] in topDone or loopsMap[(currBottom, True)][0] in topDone) and len(topHalf) > 1):
+            #indexBottom = indexBottom + 1 #they form a loop, skip
+        #else:
+            #n1 = topHalf.pop(0)
+            #n2 = bottomHalf.pop(indexBottom)
+            #topDone[n1] = True # save to avoid connecting a bottom node to a top done, short circuiting
+            #n1d = (n1, False)
+            #n2d = (n2, False)
+            ## if I already found this neighbour I am returning from the same arc(non euclidean path), I need to 
+            ## differenciate from the other so that later merge will work
+            #if n1d in neighCouples:
+                #n1d = (n1, True)
 
-            if n2d in neighCouples:
-                n2d = (n2, True)
+            #if n2d in neighCouples:
+                #n2d = (n2, True)
 
-            neighCouples[n1d] = n2d
-            neighCouples[n2d] = n1d
-            print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
-            indexBottom = 0
-    return neighCouples
+            #neighCouples[n1d] = n2d
+            #neighCouples[n2d] = n1d
+            #print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
+            #indexBottom = 0
+    #return neighCouples
 
 def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
     # i read steps following pairedNeighbours and add nIndex between them
