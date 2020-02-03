@@ -28,25 +28,39 @@ class AssociativeList:
         self.last = None
 
     def ins(self, obj, prev, succ):
-        self.dictionary[obj] = (prev, succ)
+        self.dictionary[obj] = [prev, succ]
     
     def append(self, obj):
         if self.first is None:
             self.ins(obj, None, None)
             self.first = obj
+            self.last = obj
         else:
             self.dictionary[self.last][1] = obj
-
-        self.last = obj
+            self.ins(obj, self.last, None)
+            self.last = obj
 
     
     def delete(self, obj):
+        if obj not in self.dictionary:
+            return
+
         pointers = self.dictionary[obj]
         del self.dictionary[obj]
         if pointers[0] in self.dictionary:
-            self.dictionary[pointers[0]] = pointers[1]
+            self.dictionary[pointers[0]][1] = pointers[1]
         if pointers[1] in self.dictionary:
-            self.dictionary[pointers[1]] = pointers[0]
+            self.dictionary[pointers[1]][0] = pointers[0]
+    
+    def swallowCopy(self):
+        copy = AssociativeList()
+        copy.dictionary = self.dictionary.copy()
+        copy.first = self.first
+        copy.last = self.last
+        return copy
+    
+    def len(self):
+        return len(self.dictionary)
 
 def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex indexes and list of node positions ordered by index in the graph
     # construct Path double linked list from initPath
@@ -86,7 +100,7 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         pairedNeighbours = pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap)
 
         # recreate path reversing or translating loops
-        path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
+        #path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
         print("--------endnode------------")
 
 def aggregateNode(path, nIndex):
@@ -148,6 +162,7 @@ def divideNeighbours(path, sortedNeighbours):
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
+    neighCouples = {}
     topHalf = AssociativeList()
     bottomHalf = AssociativeList()
     fullLen = len(sortedNeighbours)
@@ -168,26 +183,59 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     # at every step keep only not already connected nodes on top and bottom lists
     # at every step copy current lists so I can remove also the ends of the loops (for not short circuiting)
 
-    while len(topHalf) > 1 and len(bottomHalf) > 1 :
-        stepTop = []
-        sTopMap = {} # map value to list position 
-        stepBottom = []
-        sBottomMap = {}
-        for i in range(len(topHalf)):
-            stepTop = stepTop.append(topHalf[i])
-            sTopMap[topHalf[i]] = i
-        for i in range(len(topHalf)):
-            stepBottom = stepBottom.append(bottomHalf[i])
-            sBottomMap[bottomHalf[i]] = i
-
-        stepBottom = bottomHalf.copy() 
+    while topHalf.len() > 1 and bottomHalf.len() > 1 :
+        stepTop = topHalf.swallowCopy()
+        stepBottom = bottomHalf.swallowCopy()
 
        # connect extreme nodes excluding ends of loops until none remains  
-        while len(stepTop) > 0 :
-           firstTop = stepTop[0]
-           del stepTop[0]
-           fTopPrev = loopsMap[firstTop]
-           del stepTop[sTopMap[fTopPrev]]
+        while stepTop.len() > 0 :
+            # first
+
+            firstTop = stepTop.first
+            # connection
+            firstBottom = stepBottom.first 
+            firstTPrev = loopsMap[firstTop]
+            firstBSucc = loopsMap[firstBottom]
+
+            # remove nodes so I cannot reach them again (short circuiting) 
+            stepTop.delete(firstTop)
+            stepBottom.delete(firstBottom)
+            stepTop.delete(firstTPrev)
+            stepBottom.delete(firstTPrev) # I don't know where to find it
+            stepTop.delete(firstBSucc)
+            stepBottom.delete(firstBSucc) 
+            # remove also from top and bottom halfs so in the successive iterations I don't consider them again
+            topHalf.delete(firstTop)
+            bottomHalf.delete(firstBottom)
+            # add to couples list
+            neighCouples[firstTop] = firstBottom
+            neighCouples[firstBottom] = firstTop
+
+            # last
+
+            lastTop = stepTop.last
+            # connection
+            lastBottom = stepBottom.last 
+            lastTPrev = loopsMap[lastTop]
+            lastBSucc = loopsMap[lastBottom]
+
+            # remove nodes so I cannot reach them again (short circuiting) 
+            stepTop.delete(lastTop)
+            stepBottom.delete(lastBottom)
+            stepTop.delete(lastTPrev)
+            stepBottom.delete(lastTPrev) # I don't know where to find it
+            stepTop.delete(lastBSucc)
+            stepBottom.delete(lastBSucc) 
+            # remove also from top and bottom halfs so in the successive iterations I don't consider them again
+            topHalf.delete(lastTop)
+            bottomHalf.delete(lastBottom)
+            # add to couples list
+            neighCouples[lastTop] = lastBottom
+            neighCouples[lastBottom] = lastTop
+
+    # add last couple
+    neighCouples[topHalf.first] = bottomHalf.first
+    neighCouples[bottomHalf.first] = topHalf.first
 
     # merge halfs getting couples (not forming a loop)
     #indexBottom = 0
@@ -219,7 +267,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             #neighCouples[n2d] = n1d
             #print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
             #indexBottom = 0
-    #return neighCouples
+    return neighCouples
 
 def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
     # i read steps following pairedNeighbours and add nIndex between them
