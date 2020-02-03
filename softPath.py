@@ -16,6 +16,38 @@ class Step:
         self.neighbourDir = neighbourDir # here I store temporarily my position relative to the node I am analyzing
         self.neighbourArc = neighbourArc # temporary arc formed with analyzing node
 
+class AssociativeList:
+    # associates obj => (prevObj, succObj)
+    dictionary = {}
+    first = None
+    last = None
+
+    def __init__(self):
+        self.dictionary = {}
+        self.first = None
+        self.last = None
+
+    def ins(self, obj, prev, succ):
+        self.dictionary[obj] = (prev, succ)
+    
+    def append(self, obj):
+        if self.first is None:
+            self.ins(obj, None, None)
+            self.first = obj
+        else:
+            self.dictionary[self.last][1] = obj
+
+        self.last = obj
+
+    
+    def delete(self, obj):
+        pointers = self.dictionary[obj]
+        del self.dictionary[obj]
+        if pointers[0] in self.dictionary:
+            self.dictionary[pointers[0]] = pointers[1]
+        if pointers[1] in self.dictionary:
+            self.dictionary[pointers[1]] = pointers[0]
+
 def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex indexes and list of node positions ordered by index in the graph
     # construct Path double linked list from initPath
     if len(initPath) <= 1:
@@ -116,8 +148,8 @@ def divideNeighbours(path, sortedNeighbours):
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
-    topHalf = []
-    bottomHalf = []
+    topHalf = AssociativeList()
+    bottomHalf = AssociativeList()
     fullLen = len(sortedNeighbours)
     halfLen = math.floor(len(sortedNeighbours)/2)
 
@@ -135,12 +167,27 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
 
     # at every step keep only not already connected nodes on top and bottom lists
     # at every step copy current lists so I can remove also the ends of the loops (for not short circuiting)
-    stepTop = []
-    stepBottom = []
 
     while len(topHalf) > 1 and len(bottomHalf) > 1 :
-       stepTop = topHalf.copy() 
-       stepBottom = bottomHalf.copy() 
+        stepTop = []
+        sTopMap = {} # map value to list position 
+        stepBottom = []
+        sBottomMap = {}
+        for i in range(len(topHalf)):
+            stepTop = stepTop.append(topHalf[i])
+            sTopMap[topHalf[i]] = i
+        for i in range(len(topHalf)):
+            stepBottom = stepBottom.append(bottomHalf[i])
+            sBottomMap[bottomHalf[i]] = i
+
+        stepBottom = bottomHalf.copy() 
+
+       # connect extreme nodes excluding ends of loops until none remains  
+        while len(stepTop) > 0 :
+           firstTop = stepTop[0]
+           del stepTop[0]
+           fTopPrev = loopsMap[firstTop]
+           del stepTop[sTopMap[fTopPrev]]
 
     # merge halfs getting couples (not forming a loop)
     #indexBottom = 0
