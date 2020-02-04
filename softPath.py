@@ -100,7 +100,7 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         pairedNeighbours = pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap)
 
         # recreate path reversing or translating loops
-        #path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
+        path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
         print("--------endnode------------")
 
 def aggregateNode(path, nIndex):
@@ -194,8 +194,8 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             firstTop = stepTop.first
             # connection
             firstBottom = stepBottom.first 
-            firstTPrev = loopsMap[firstTop]
-            firstBSucc = loopsMap[firstBottom]
+            firstTPrev = loopsMap[(firstTop,False)][0]
+            firstBSucc = loopsMap[(firstBottom, False)][0]
 
             # remove nodes so I cannot reach them again (short circuiting) 
             stepTop.delete(firstTop)
@@ -208,16 +208,16 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             topHalf.delete(firstTop)
             bottomHalf.delete(firstBottom)
             # add to couples list
-            neighCouples[firstTop] = firstBottom
-            neighCouples[firstBottom] = firstTop
+            neighCouples[(firstTop,False)] = (firstBottom,False)
+            neighCouples[(firstBottom,False)] = (firstTop,False)
 
             # last
 
             lastTop = stepTop.last
             # connection
             lastBottom = stepBottom.last 
-            lastTPrev = loopsMap[lastTop]
-            lastBSucc = loopsMap[lastBottom]
+            lastTPrev = loopsMap[(lastTop,False)][0]
+            lastBSucc = loopsMap[(lastBottom,False)][0]
 
             # remove nodes so I cannot reach them again (short circuiting) 
             stepTop.delete(lastTop)
@@ -230,12 +230,12 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             topHalf.delete(lastTop)
             bottomHalf.delete(lastBottom)
             # add to couples list
-            neighCouples[lastTop] = lastBottom
-            neighCouples[lastBottom] = lastTop
+            neighCouples[(lastTop,False)] = (lastBottom,False)
+            neighCouples[(lastBottom,False)] = (lastTop,False)
 
     # add last couple
-    neighCouples[topHalf.first] = bottomHalf.first
-    neighCouples[bottomHalf.first] = topHalf.first
+    neighCouples[(topHalf.first,False)] = (bottomHalf.first, False)
+    neighCouples[(bottomHalf.first,False)] = (topHalf.first,False)
 
     # merge halfs getting couples (not forming a loop)
     #indexBottom = 0
@@ -328,17 +328,17 @@ def tests():
     #positions = [(0,0),(0,1),(1,1),(1,0)]    # positions of nodes
     #initPath = [0,1,2,3] # not closed path
 
-    #G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
-    #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
-    #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+    G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
+    positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
+    initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
 
     #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # single node with many arcs
     #positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
     #initPath = [0,1,2,0,3,4,0,5,6] # not closed path
 
-    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
-    positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
-    initPath = [0,1,2,0,3,0,4,0,5] 
+    #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
+    #positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
+    #initPath = [0,1,2,0,3,0,4,0,5] 
     softPath(G, positions, initPath)
 
 tests()
