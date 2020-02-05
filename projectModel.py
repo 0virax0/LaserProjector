@@ -125,15 +125,6 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
     
     # write to wav file
     npArr = np.array(signal)
-    #ampArr = (npArr * amplitude * 127 / np.max(np.abs(npArr)))
-    #f = open('test1.wav', 'wb')
-    #for i in ampArr[0]:
-    #    f.write(struct.pack('b', int(i)))
-    #f.close
-    #f = open('test2.wav', 'wb')
-    #for i in ampArr[1]:
-    #    f.write(struct.pack('b', int(i)))
-    #f.close
 
     #plot result
     if drawGraph:

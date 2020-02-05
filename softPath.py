@@ -163,15 +163,26 @@ def divideNeighbours(path, sortedNeighbours):
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     neighCouples = {}
+    currLoopsMap = copy.deepcopy(loopsMap)
     topHalf = AssociativeList()
     bottomHalf = AssociativeList()
     fullLen = len(sortedNeighbours)
     halfLen = math.floor(len(sortedNeighbours)/2)
 
+    # copy divided indexes
     for i in range(halfLen):
-        topHalf.append(sortedNeighbours[(divisionIndexes[0]+i) % fullLen])
+        topElem = sortedNeighbours[(divisionIndexes[0]+i) % fullLen]
+        # duplicates in case of non euclidean path, i need to distinguish them
+        if (topElem, False) not in topHalf.dictionary:
+            topHalf.append((topElem, False))
+        else: 
+            topHalf.append((topElem, True))
         # bottomHalf has to be reversed (so is in the circle)
-        bottomHalf.append(sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]) 
+        bottomElem = sortedNeighbours[(divisionIndexes[1]+i+1) % fullLen]
+        if (bottomElem, False) not in bottomHalf.dictionary and (bottomElem, False) not in topHalf.dictionary:
+            bottomHalf.append((bottomElem, False)) 
+        else:
+            bottomHalf.append((bottomElem, True)) 
 
     # Connect nodes in the top half with those on the bottom half so that including already present semi-loops
     # I form a complete tour of the nodes without short circuiting. Doing so I try to maximize angles formed
@@ -196,7 +207,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             # remove also from top and bottom halfs so in the successive iterations I don't consider them again
             topHalf.delete(firstTop)
 
-            firstTPrev = loopsMap[(firstTop,False)][0]
+            firstTPrev = currLoopsMap[firstTop]
             stepTop.delete(firstTPrev)
             stepBottom.delete(firstTPrev) # I don't know where to find it
 
@@ -205,13 +216,19 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             stepBottom.delete(firstBottom)
             bottomHalf.delete(firstBottom)
 
-            firstBSucc = loopsMap[(firstBottom, False)][0]
+            firstBSucc = currLoopsMap[firstBottom]
             stepTop.delete(firstBSucc)
             stepBottom.delete(firstBSucc) # I don't know where to find it
 
+            # change loops ends (extending them)
+            del currLoopsMap[firstTop]  # now connected, no longer need it
+            del currLoopsMap[firstBottom]
+            currLoopsMap[firstTPrev] = firstBSucc
+            currLoopsMap[firstBSucc] = firstTPrev
+
             # add to couples list
-            neighCouples[(firstTop,False)] = (firstBottom,False)
-            neighCouples[(firstBottom,False)] = (firstTop,False)
+            neighCouples[firstTop] = firstBottom
+            neighCouples[firstBottom] = firstTop
 
             ### last
             if stepTop.len() > 0 and stepBottom.len() > 0:  # removal of first element may have left nothing
@@ -220,7 +237,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
                 # remove also from top and bottom halfs so in the successive iterations I don't consider them again
                 topHalf.delete(lastTop)
 
-                lastTPrev = loopsMap[(lastTop,False)][0]
+                lastTPrev = currLoopsMap[lastTop]
                 # remove nodes so I cannot reach them again (short circuiting) 
                 stepTop.delete(lastTPrev)
                 stepBottom.delete(lastTPrev) # I don't know where to find it
@@ -230,17 +247,23 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
                 stepBottom.delete(lastBottom)
                 bottomHalf.delete(lastBottom)
 
-                lastBSucc = loopsMap[(lastBottom,False)][0]
+                lastBSucc = currLoopsMap[lastBottom]
                 stepTop.delete(lastBSucc)
                 stepBottom.delete(lastBSucc) 
 
+                # change loops ends (extending them)
+                del currLoopsMap[lastTop]  # now connected, no longer need it
+                del currLoopsMap[lastBottom]
+                currLoopsMap[lastTPrev] = lastBSucc
+                currLoopsMap[lastBSucc] = lastTPrev
+
                 # add to couples list
-                neighCouples[(lastTop,False)] = (lastBottom,False)
-                neighCouples[(lastBottom,False)] = (lastTop,False)
+                neighCouples[lastTop] = lastBottom
+                neighCouples[lastBottom] = lastTop
 
     # add last couple
-    neighCouples[(topHalf.first,False)] = (bottomHalf.first, False)
-    neighCouples[(bottomHalf.first,False)] = (topHalf.first,False)
+    neighCouples[topHalf.first] = bottomHalf.first
+    neighCouples[bottomHalf.first] = topHalf.first
 
     # merge halfs getting couples (not forming a loop)
     #indexBottom = 0
@@ -337,13 +360,13 @@ def tests():
     #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
     #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
 
-    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0),(0,7),(7,8),(8,0)]) # single node with many arcs
-    positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1),(1,0.3),(1,0)]    # positions of nodes
-    initPath = [0,1,2,0,3,4,0,5,6,0,7,8] # not closed path
+    #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0),(0,7),(7,8),(8,0)]) # single node with many arcs
+    #positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1),(1,0.3),(1,0)]    # positions of nodes
+    #initPath = [0,1,2,0,3,4,0,5,6,0,7,8] # not closed path
 
-    #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
-    #positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
-    #initPath = [0,1,2,0,3,0,4,0,5] 
+    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
+    positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
+    initPath = [0,1,2,0,3,0,4,0,5] 
     softPath(G, positions, initPath)
 
 tests()
