@@ -77,6 +77,7 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
 
     samplingRate = 44100
     drawing = [[],[]]    # single drawing
+    drawingGraph = [[],[]]    # for showing in the graph
     signal = [[],[]]     # entire signal
 
     for ends in segments:
@@ -91,7 +92,8 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
         
         # fill drawing
         def smoothingFun(t):
-            return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
+            #return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
+            return 1.0
 
         def positionInterp(startCoords, endCoords, completion):   # smooth linearly based on position
             return [startCoords[0] + (endCoords[0] - startCoords[0]) * smoothingFun(completion), startCoords[1] + (endCoords[1] - startCoords[1]) * smoothingFun(completion)]
@@ -112,6 +114,10 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
                 newVal = velocityInterp(start, end, segTime, segCompletion)
                 drawing[0].append(newVal[0])
                 drawing[1].append(newVal[1])
+                # for graph drawing
+                newValPosition = positionInterp(start, end, segCompletion)
+                drawingGraph[0].append(newValPosition[0])
+                drawingGraph[1].append(newValPosition[1])
 
     # duplicate drawing to get complete signal
     signal[0] = drawing[0] * draws
@@ -132,7 +138,7 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
     #plot result
     if drawGraph:
         plt.subplot(311)
-        plt.plot(drawing[0], drawing[1], "bo", signal[0], signal[1], "k")
+        plt.plot(drawingGraph[0], drawingGraph[1], "bo", signal[0], signal[1], "k")
         plt.subplot(312)
         plt.plot(np.linspace(0.0, drawTime, len(drawing[0])), drawing[0])
         plt.subplot(313)

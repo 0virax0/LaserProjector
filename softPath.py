@@ -6,6 +6,7 @@
 # I can safely switch loops walking in reverse order starting and ending in
 # the same node because the complete loop will still be an eulerian cicle
 
+import copy
 import numpy as np
 import math
 import networkx as nx
@@ -49,15 +50,13 @@ class AssociativeList:
         del self.dictionary[obj]
         if pointers[0] in self.dictionary:
             self.dictionary[pointers[0]][1] = pointers[1]
+        else: # I'm the first
+            self.first = pointers[1]
+
         if pointers[1] in self.dictionary:
             self.dictionary[pointers[1]][0] = pointers[0]
-    
-    def swallowCopy(self):
-        copy = AssociativeList()
-        copy.dictionary = self.dictionary.copy()
-        copy.first = self.first
-        copy.last = self.last
-        return copy
+        else: # I'm the last
+            self.last = pointers[0]
     
     def len(self):
         return len(self.dictionary)
@@ -74,6 +73,7 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
 
     # for each node get its data and that of all neighbours
     for nIndex, _ in graph.adj.items():
+        print("nIndex:", nIndex)
         # aggregate nodes positions in the path (may have scrumbled from previous step and I need them in order)
         aggrNindex = aggregateNode(path, nIndex) # find every occurrence of the node in path and return the index
 
@@ -184,54 +184,59 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     # at every step copy current lists so I can remove also the ends of the loops (for not short circuiting)
 
     while topHalf.len() > 1 and bottomHalf.len() > 1 :
-        stepTop = topHalf.swallowCopy()
-        stepBottom = bottomHalf.swallowCopy()
+        stepTop = copy.deepcopy(topHalf)
+        stepBottom = copy.deepcopy(bottomHalf)
 
        # connect extreme nodes excluding ends of loops until none remains  
-        while stepTop.len() > 0 :
-            # first
-
+        while stepTop.len() > 1 :
+            ### first
+            # match and remove nodes so I cannot reach them again (short circuiting) 
             firstTop = stepTop.first
-            # connection
-            firstBottom = stepBottom.first 
-            firstTPrev = loopsMap[(firstTop,False)][0]
-            firstBSucc = loopsMap[(firstBottom, False)][0]
-
-            # remove nodes so I cannot reach them again (short circuiting) 
             stepTop.delete(firstTop)
-            stepBottom.delete(firstBottom)
-            stepTop.delete(firstTPrev)
-            stepBottom.delete(firstTPrev) # I don't know where to find it
-            stepTop.delete(firstBSucc)
-            stepBottom.delete(firstBSucc) 
             # remove also from top and bottom halfs so in the successive iterations I don't consider them again
             topHalf.delete(firstTop)
+
+            firstTPrev = loopsMap[(firstTop,False)][0]
+            stepTop.delete(firstTPrev)
+            stepBottom.delete(firstTPrev) # I don't know where to find it
+
+            # connection
+            firstBottom = stepBottom.first 
+            stepBottom.delete(firstBottom)
             bottomHalf.delete(firstBottom)
+
+            firstBSucc = loopsMap[(firstBottom, False)][0]
+            stepTop.delete(firstBSucc)
+            stepBottom.delete(firstBSucc) # I don't know where to find it
+
             # add to couples list
             neighCouples[(firstTop,False)] = (firstBottom,False)
             neighCouples[(firstBottom,False)] = (firstTop,False)
 
-            # last
+            ### last
+            if stepTop.len() > 0 and stepBottom.len() > 0:  # removal of first element may have left nothing
+                lastTop = stepTop.last
+                stepTop.delete(lastTop)
+                # remove also from top and bottom halfs so in the successive iterations I don't consider them again
+                topHalf.delete(lastTop)
 
-            lastTop = stepTop.last
-            # connection
-            lastBottom = stepBottom.last 
-            lastTPrev = loopsMap[(lastTop,False)][0]
-            lastBSucc = loopsMap[(lastBottom,False)][0]
+                lastTPrev = loopsMap[(lastTop,False)][0]
+                # remove nodes so I cannot reach them again (short circuiting) 
+                stepTop.delete(lastTPrev)
+                stepBottom.delete(lastTPrev) # I don't know where to find it
 
-            # remove nodes so I cannot reach them again (short circuiting) 
-            stepTop.delete(lastTop)
-            stepBottom.delete(lastBottom)
-            stepTop.delete(lastTPrev)
-            stepBottom.delete(lastTPrev) # I don't know where to find it
-            stepTop.delete(lastBSucc)
-            stepBottom.delete(lastBSucc) 
-            # remove also from top and bottom halfs so in the successive iterations I don't consider them again
-            topHalf.delete(lastTop)
-            bottomHalf.delete(lastBottom)
-            # add to couples list
-            neighCouples[(lastTop,False)] = (lastBottom,False)
-            neighCouples[(lastBottom,False)] = (lastTop,False)
+                # connection
+                lastBottom = stepBottom.last 
+                stepBottom.delete(lastBottom)
+                bottomHalf.delete(lastBottom)
+
+                lastBSucc = loopsMap[(lastBottom,False)][0]
+                stepTop.delete(lastBSucc)
+                stepBottom.delete(lastBSucc) 
+
+                # add to couples list
+                neighCouples[(lastTop,False)] = (lastBottom,False)
+                neighCouples[(lastBottom,False)] = (lastTop,False)
 
     # add last couple
     neighCouples[(topHalf.first,False)] = (bottomHalf.first, False)
@@ -267,6 +272,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             #neighCouples[n2d] = n1d
             #print((path[n1d[0]].nIndex,n1d[1]),",",(path[n2d[0]].nIndex,n2d[1]))
             #indexBottom = 0
+    print("neighCouples:", neighCouples)
     return neighCouples
 
 def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
@@ -290,7 +296,6 @@ def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
 
     nextN = next(iter(pairedNeighbours)) # get a starting neighbour
     for _ in range(math.floor(len(pairedNeighbours.keys())/2)):
-        print(nextN)
         newPath.append(Step(nIndex, None, None))
         readThenWriteFrom(nextN[0], loopsMap[nextN][0])
         nextN = pairedNeighbours[loopsMap[nextN]]
@@ -341,4 +346,15 @@ def tests():
     #initPath = [0,1,2,0,3,0,4,0,5] 
     softPath(G, positions, initPath)
 
+    #assList = AssociativeList()
+    #assList.append(1)
+    #assList.append(2)
+    #assList.append(3)
+    #assList.append(4)
+    #assList.append(5)
+    #assList.delete(3)
+    #assList.delete(1)
+    #assList.delete(5)
+    #assList.delete(4)
+    #assList.delete(2)
 tests()
