@@ -188,7 +188,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         stepBottom = copy.deepcopy(bottomHalf)
 
        # connect extreme nodes excluding ends of loops until none remains  
-        while stepTop.len() > 1 :
+        while stepTop.len() > 0 and stepBottom.len() > 0 :
             ### first
             # match and remove nodes so I cannot reach them again (short circuiting) 
             firstTop = stepTop.first
@@ -333,28 +333,17 @@ def tests():
     #positions = [(0,0),(0,1),(1,1),(1,0)]    # positions of nodes
     #initPath = [0,1,2,3] # not closed path
 
-    G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
-    positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
-    initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
+    #G.add_edges_from([(0,1),(1,2),(3,1),(1,4),(0,2),(3,4),(2,3),(4,0),(2,5),(5,3),(4,6),(6,0)]) # square with center
+    #positions = [(0,0),(0.5,0.5),(0,1),(1,1),(1,0),(0.5,2),(0.5,-1)]    # positions of nodes
+    #initPath = [0,1,2,3,1,4,0,6,4,3,5,2] # not closed path
 
-    #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0)]) # single node with many arcs
-    #positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1)]    # positions of nodes
-    #initPath = [0,1,2,0,3,4,0,5,6] # not closed path
+    G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(3,4),(4,0),(0,5),(5,6),(6,0),(0,7),(7,8),(8,0)]) # single node with many arcs
+    positions = [(0,0),(1,-0.9),(-0.5,-1),(-1,0.3),(-1,0.8),(-0.3,1),(0.4,1),(1,0.3),(1,0)]    # positions of nodes
+    initPath = [0,1,2,0,3,4,0,5,6,0,7,8] # not closed path
 
     #G.add_edges_from([(0,1),(1,2),(2,0),(0,3),(0,4),(0,5)]) # non eulerian cicle
     #positions = [(0,0),(0,1),(0.7,0.3),(0.5,-0.6),(-0.5,-0.6),(-0.7,0.3)]   
     #initPath = [0,1,2,0,3,0,4,0,5] 
     softPath(G, positions, initPath)
 
-    #assList = AssociativeList()
-    #assList.append(1)
-    #assList.append(2)
-    #assList.append(3)
-    #assList.append(4)
-    #assList.append(5)
-    #assList.delete(3)
-    #assList.delete(1)
-    #assList.delete(5)
-    #assList.delete(4)
-    #assList.delete(2)
 tests()
