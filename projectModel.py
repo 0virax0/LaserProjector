@@ -18,10 +18,16 @@ def eulerCicle(graph):
     edgelist_file = create_mock_csv_from_dataframe(edgelist)
     circuit_cpp_req, graph_cpp_req = cpp(edgelist_file)
     print('Print the CPP solution:')
+    
+    # solve chinese postman problem on graph
+    # result circuit_cpp_req is in the form ('6.0', '2.0', 0, {'distance': 1.05144, 'id': 6, 'augmented': True})
+    #                   node1_|       |_node2 index 
+    # keep only the nodes
+    circuit_edges = []
     for e in circuit_cpp_req:
-        print(e)
+        circuit_edges.append((int(float(e[0]))-1, int(float(e[1]))-1))
 
-    return circuit_cpp_req
+    return circuit_edges
 
 # get a list of all model's segments in draw order
 def getSegs(model):
@@ -52,14 +58,14 @@ def getSegs(model):
         graph.add_edge(*segments[i], distance = length) # graph node name is the (int) index in segments
 
     # solve chinese postman problem on graph
-    # result is in the form ('6.0', '2.0', 0, {'distance': 1.05144, 'id': 6, 'augmented': True})
-    #                   node1_|       |_node2 index 
-    circuit_cpp_req = eulerCicle(graph)
+    # result is in the form (6, 2)
+    #                  node1_| |_node2 index 
+    circuit_edges = eulerCicle(graph)
 
-    # return vertex positions in order
+    # get vertex positions in order
     orderedVsegs = []
-    for e in circuit_cpp_req:
-        orderedVsegs.append((model.vertices[int(float(e[0]))-1], model.vertices[int(float(e[1]))-1]))
+    for e in circuit_edges:
+        orderedVsegs.append((model.vertices[e[0]], model.vertices[e[1]]))
 
     print(orderedVsegs)
 
