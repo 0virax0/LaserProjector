@@ -92,7 +92,6 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
 
         # index of sortedNeghbours: I divide neighbours in 2 so that half are in half circle
         divisionIndexes = divideNeighbours(path, sortedNeighbours)
-        #print(divisionIndexes)
 
         # I pair neighbours so each has the other the most far possible in the circle (skipping those already connected via a loop) 
         # this way when i cross this node i do with maximal angles
@@ -160,7 +159,7 @@ def divideNeighbours(path, sortedNeighbours):
 
     while arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)) >= 0.5 or arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)) < 0.5:
         startIndex = (startIndex + 1) % length
-        #print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
+        print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
@@ -311,7 +310,7 @@ def arcBetween(v1, v2): # v1, v2 should be normalized
     # search if v2 is under v1
     v1Perp = np.array([-v1[1], v1[0]])
     perpDot = np.dot(v1Perp, v2) # measures the sine, if positive v2 is above with v1
-    if perpDot > 0:
+    if perpDot >= 0:
         return (-dot + 1)/4
     else:
         return (dot + 3)/4

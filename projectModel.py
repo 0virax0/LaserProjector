@@ -121,8 +121,8 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
         
         # fill drawing
         def smoothingFun(t):
-            #return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
-            return 1.0
+            return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
+            #return 1.0
 
         def positionInterp(startCoords, endCoords, completion):   # smooth linearly based on position
             return [startCoords[0] + (endCoords[0] - startCoords[0]) * smoothingFun(completion), startCoords[1] + (endCoords[1] - startCoords[1]) * smoothingFun(completion)]
