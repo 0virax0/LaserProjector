@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "default",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "draw square",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["square.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+        },
+        {
+            "name": "draw cube",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["cube.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+        },
+        {
+            "name": "draw circle",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["circle.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+        }
+    ]
+}

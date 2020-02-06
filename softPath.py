@@ -12,7 +12,7 @@ import math
 import networkx as nx
 
 class Step:
-   def __init__(self, nIndex = None, neighbourDir = None, neighbourArc = None):
+    def __init__(self, nIndex = None, neighbourDir = None, neighbourArc = None):
         self.nIndex = nIndex # index of the node
         self.neighbourDir = neighbourDir # here I store temporarily my position relative to the node I am analyzing
         self.neighbourArc = neighbourArc # temporary arc formed with analyzing node
@@ -102,6 +102,8 @@ def softPath(graph, nodePositions, initPath):    #graph nodes containing vertex 
         # recreate path reversing or translating loops
         path = rebuildPath(path, loopsMap, pairedNeighbours, nIndex)
         print("--------endnode------------")
+    
+    return pathToIndexes(path)
 
 def aggregateNode(path, nIndex):
     # from path I organize nIndexes aggregating same nIndex so that I recognize
@@ -138,7 +140,7 @@ def getLoops(path, neighbours):
         # ends reside one next to the other starting from the second element
         ends = (neighbours[(i*2+1) % len(neighbours)], neighbours[(i*2+2) % len(neighbours)])
         if ends[0] == ends[1]: # distinguish duplicates so it works even if cicle is not eulerian
-                               # as both ands will be the same
+                            # as both ands will be the same
             loopsMap[(ends[0], False)] = (ends[0], True)
             loopsMap[(ends[0], True)] = (ends[0], False)
         else:
@@ -198,7 +200,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         stepTop = copy.deepcopy(topHalf)
         stepBottom = copy.deepcopy(bottomHalf)
 
-       # connect extreme nodes excluding ends of loops until none remains  
+    # connect extreme nodes excluding ends of loops until none remains  
         while stepTop.len() > 0 and stepBottom.len() > 0 :
             ### first
             # match and remove nodes so I cannot reach them again (short circuiting) 
@@ -317,7 +319,7 @@ def arcBetween(v1, v2): # v1, v2 should be normalized
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0: 
-       return v
+        return v
     return v / norm
 
 def tests():
@@ -343,5 +345,3 @@ def tests():
     initPath = [0,1,2,3,4,5,3,6,7,3,2] 
 
     softPath(G, positions, initPath)
-
-tests()

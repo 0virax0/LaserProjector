@@ -11,6 +11,7 @@ from OBJloader import *
 from postman_problems.tests.utils import create_mock_csv_from_dataframe
 from postman_problems.stats import calculate_postman_solution_stats
 from postman_problems.solver import rpp, cpp
+from softPath import *
 
 # get an eulerian cicle from graph
 def eulerCicle(graph):
@@ -26,6 +27,26 @@ def eulerCicle(graph):
     circuit_edges = []
     for e in circuit_cpp_req:
         circuit_edges.append((int(float(e[0]))-1, int(float(e[1]))-1))
+
+    return circuit_edges
+
+def optimizedEulerian(graph, model, circuit_edges):
+    # optimize eulerian circuit using softPath optimizer
+    circuit = []    #get nodes in circuit
+    for n in circuit_edges:
+        circuit.append(n[0])
+    
+    # get positions
+    positions = []
+    for n in model.vertices:
+        positions.append((n[0], n[1]))
+
+    optCircuit = softPath(graph, positions, circuit)
+
+    # transform nodes circuit back in circuit edges
+    circuit_edges = []
+    for i in range(len(optCircuit)):
+        circuit_edges.append((optCircuit[i], optCircuit[(i+1)%len(optCircuit)]))
 
     return circuit_edges
 
@@ -62,9 +83,11 @@ def getSegs(model):
     #                  node1_| |_node2 index 
     circuit_edges = eulerCicle(graph)
 
+    optimized_edges = optimizedEulerian(graph, model, circuit_edges)
+
     # get vertex positions in order
     orderedVsegs = []
-    for e in circuit_edges:
+    for e in optimized_edges:
         orderedVsegs.append((model.vertices[e[0]], model.vertices[e[1]]))
 
     print(orderedVsegs)
