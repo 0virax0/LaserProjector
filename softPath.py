@@ -154,12 +154,29 @@ def orderNeighbours(path, neighbours):
 def divideNeighbours(path, sortedNeighbours):
     length = len(sortedNeighbours)
     startIndex = 0
+
+    def getInnerIndex(startIndex):
+        return (startIndex + math.ceil((length/2) - 1)) % length
+    def getOuterIndex(startIndex):
+        return (startIndex + math.floor((length/2))) % length
+
     def getDir(index):
         return path[sortedNeighbours[index]].neighbourDir
+    
+    def arcBetweenIndexes(startIndex, endIndex):
+        def rotateBias(dir, index):
+            return (dir[0] + 0.01 * index * dir[1], dir[1] - 0.01 * index * dir[0])
+        # add bias to avoid overlappings
+        return arcBetween(rotateBias(getDir(startIndex), startIndex), rotateBias(getDir(endIndex), endIndex))
+    
+    def condition():
+        innerArc = arcBetweenIndexes(startIndex, getInnerIndex(startIndex)) 
+        outerArc = arcBetweenIndexes(startIndex, getOuterIndex(startIndex)) 
+        return innerArc >= 0.5 or outerArc < 0.5 
 
-    while arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)) >= 0.5 or arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)) < 0.5:
+    while condition():
         startIndex = (startIndex + 1) % length
-        print("arc before ",arcBetween(getDir(startIndex), getDir((startIndex + math.ceil((length/2) - 1)) % length)), " arc after ",arcBetween(getDir(startIndex), getDir((startIndex + math.floor((length/2))) % length)))
+        print("arc before ",arcBetweenIndexes(startIndex, getInnerIndex(startIndex)), " arc after ",arcBetweenIndexes(startIndex, getOuterIndex(startIndex)) )
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
@@ -318,7 +335,7 @@ def arcBetween(v1, v2): # v1, v2 should be normalized
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0: 
-        return v
+        return [0,1]
     return v / norm
 
 def tests():

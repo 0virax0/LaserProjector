@@ -1,6 +1,8 @@
 {
     "version": "0.2.0",
     "configurations": [
+
+
         {
             "name": "default",
             "type": "python",
@@ -31,6 +33,22 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": ["circle.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+        },
+        {
+            "name": "draw monkey",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["monkey.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+        },
+        {
+            "name": "draw torus",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["torus.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
         }
     ]
 }
