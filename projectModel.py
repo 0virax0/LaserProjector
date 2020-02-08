@@ -90,8 +90,6 @@ def getSegs(model):
     for e in optimized_edges:
         orderedVsegs.append((model.vertices[e[0]], model.vertices[e[1]]))
 
-    print(orderedVsegs)
-
     return orderedVsegs
 
 def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for a single draw, number of draws, scale(0..1)
@@ -121,8 +119,8 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
         
         # fill drawing
         def smoothingFun(t):
-            return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
-            #return 1.0
+            #return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
+            return 1.0
 
         def positionInterp(startCoords, endCoords, completion):   # smooth linearly based on position
             return [startCoords[0] + (endCoords[0] - startCoords[0]) * smoothingFun(completion), startCoords[1] + (endCoords[1] - startCoords[1]) * smoothingFun(completion)]
@@ -158,7 +156,8 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
     #plot result
     if drawGraph:
         plt.subplot(311)
-        plt.plot(drawingGraph[0], drawingGraph[1], "bo", signal[0], signal[1], "k")
+        #plt.plot(drawingGraph[0], drawingGraph[1], "bo", signal[0], signal[1], "k")
+        plt.plot(drawingGraph[0], drawingGraph[1], "bo")
         plt.subplot(312)
         plt.plot(np.linspace(0.0, drawTime, len(drawing[0])), drawing[0])
         plt.subplot(313)

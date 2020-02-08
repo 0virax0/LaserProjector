@@ -215,12 +215,12 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
     # at every step keep only not already connected nodes on top and bottom lists
     # at every step copy current lists so I can remove also the ends of the loops (for not short circuiting)
 
-    while topHalf.len() > 1 and bottomHalf.len() > 1 :
+    while topHalf.len() >= 2 and bottomHalf.len() >= 2 :
         stepTop = copy.deepcopy(topHalf)
         stepBottom = copy.deepcopy(bottomHalf)
 
     # connect extreme nodes excluding ends of loops until none remains  
-        while stepTop.len() > 0 and stepBottom.len() > 0 :
+        while stepTop.len() >= 1 and stepBottom.len() >= 1 and (stepTop.len()+stepBottom.len())>=4:
             ### first
             # match and remove nodes so I cannot reach them again (short circuiting) 
             firstTop = stepTop.first
@@ -252,7 +252,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
             neighCouples[firstBottom] = firstTop
 
             ### last
-            if stepTop.len() > 0 and stepBottom.len() > 0:  # removal of first element may have left nothing
+            if stepTop.len() >= 1 and stepBottom.len() >= 1 and (stepTop.len()+stepBottom.len())>=4:  # removal of first element may have left nothing
                 lastTop = stepTop.last
                 stepTop.delete(lastTop)
                 # remove also from top and bottom halfs so in the successive iterations I don't consider them again
@@ -291,7 +291,7 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
 
 def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
     # i read steps following pairedNeighbours and add nIndex between them
-    print("prima: ",pathToIndexes(path))
+    #print("prima: ",pathToIndexes(path))
     newPath = []
     def readThenWriteFrom(start, end):
         if start != end:
@@ -314,7 +314,7 @@ def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):
         readThenWriteFrom(nextN[0], loopsMap[nextN][0])
         nextN = pairedNeighbours[loopsMap[nextN]]
     
-    print("dopo:  ",pathToIndexes(newPath))
+    #print("dopo:  ",pathToIndexes(newPath))
     return newPath
 
 def pathToIndexes(path):
