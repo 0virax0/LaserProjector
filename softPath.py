@@ -165,7 +165,10 @@ def divideNeighbours(path, sortedNeighbours):
     
     def arcBetweenIndexes(startIndex, endIndex):
         def rotateBias(dir, index):
-            return (dir[0] + 0.01 * index * dir[1], dir[1] - 0.01 * index * dir[0])
+            sin = 0.001 * index
+            cos = (1-sin)
+            r = (dir[0]*cos - dir[1]*sin, dir[0]*sin + dir[1]*cos)
+            return r
         # add bias to avoid overlappings
         return arcBetween(rotateBias(getDir(startIndex), startIndex), rotateBias(getDir(endIndex), endIndex))
     
@@ -176,7 +179,7 @@ def divideNeighbours(path, sortedNeighbours):
 
     while condition():
         startIndex = (startIndex + 1) % length
-        print("arc before ",arcBetweenIndexes(startIndex, getInnerIndex(startIndex)), " arc after ",arcBetweenIndexes(startIndex, getOuterIndex(startIndex)) )
+        #print("arc before ",arcBetweenIndexes(startIndex, getInnerIndex(startIndex)), " arc after ",arcBetweenIndexes(startIndex, getOuterIndex(startIndex)) )
     return (startIndex, (startIndex + math.ceil((length/2) - 1)) % length)
 
 def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
