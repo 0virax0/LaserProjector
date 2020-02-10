@@ -219,74 +219,58 @@ def pairNeighbours(path, sortedNeighbours, divisionIndexes, loopsMap):
         stepTop = copy.deepcopy(topHalf)
         stepBottom = copy.deepcopy(bottomHalf)
 
-    # connect extreme nodes excluding ends of loops until none remains  
-        while stepTop.len() >= 1 and stepBottom.len() >= 1 and (stepTop.len()+stepBottom.len())>=4:
+        firstext = True # true for first element, false for last
+
+    # connect ext nodes excluding ends of loops until none remains  
+        while stepTop.len() >= 1 and stepBottom.len() >= 1: #and (stepTop.len()+stepBottom.len())>=4:
             ### first
             # match and remove nodes so I cannot reach them again (short circuiting) 
-            firstTop = stepTop.first
-            stepTop.delete(firstTop)
-            # remove also from top and bottom halfs so in the successive iterations I don't consider them again
-            topHalf.delete(firstTop)
+            if firstext == True:
+                extTop = stepTop.first
+            else:
+                extTop = stepTop.last
+            if extTop is None:  # elements are exausted before time
+                break   
+            stepTop.delete(extTop)
 
-            firstTPrev = currLoopsMap[firstTop]
-            stepTop.delete(firstTPrev)
-            stepBottom.delete(firstTPrev) # I don't know where to find it
+            extTPrev = currLoopsMap[extTop]
+            stepTop.delete(extTPrev)
+            stepBottom.delete(extTPrev) # I don't know where to find it
 
             # connection
-            firstBottom = stepBottom.first 
-            stepBottom.delete(firstBottom)
-            bottomHalf.delete(firstBottom)
+            if firstext == True:
+                extBottom = stepBottom.first 
+            else:
+                extBottom = stepBottom.last 
+            if extBottom is None:
+                break   # elements are exausted before time
+            stepBottom.delete(extBottom)
 
-            firstBSucc = currLoopsMap[firstBottom]
-            stepTop.delete(firstBSucc)
-            stepBottom.delete(firstBSucc) # I don't know where to find it
+            extBSucc = currLoopsMap[extBottom]
+            stepTop.delete(extBSucc)
+            stepBottom.delete(extBSucc) # I don't know where to find it
 
             # change loops ends (extending them)
-            del currLoopsMap[firstTop]  # now connected, no longer need it
-            del currLoopsMap[firstBottom]
-            currLoopsMap[firstTPrev] = firstBSucc
-            currLoopsMap[firstBSucc] = firstTPrev
+            del currLoopsMap[extTop]  # now connected, no longer need it
+            del currLoopsMap[extBottom]
+            currLoopsMap[extTPrev] = extBSucc
+            currLoopsMap[extBSucc] = extTPrev
 
             # add to couples list
-            neighCouples[firstTop] = firstBottom
-            neighCouples[firstBottom] = firstTop
+            neighCouples[extTop] = extBottom
+            neighCouples[extBottom] = extTop
 
-            ### last
-            if stepTop.len() >= 1 and stepBottom.len() >= 1 and (stepTop.len()+stepBottom.len())>=4:  # removal of first element may have left nothing
-                lastTop = stepTop.last
-                stepTop.delete(lastTop)
-                # remove also from top and bottom halfs so in the successive iterations I don't consider them again
-                topHalf.delete(lastTop)
+            # remove also from top and bottom halfs so in the successive iterations I don't consider them again
+            topHalf.delete(extTop)
+            bottomHalf.delete(extBottom)
 
-                lastTPrev = currLoopsMap[lastTop]
-                # remove nodes so I cannot reach them again (short circuiting) 
-                stepTop.delete(lastTPrev)
-                stepBottom.delete(lastTPrev) # I don't know where to find it
-
-                # connection
-                lastBottom = stepBottom.last 
-                stepBottom.delete(lastBottom)
-                bottomHalf.delete(lastBottom)
-
-                lastBSucc = currLoopsMap[lastBottom]
-                stepTop.delete(lastBSucc)
-                stepBottom.delete(lastBSucc) 
-
-                # change loops ends (extending them)
-                del currLoopsMap[lastTop]  # now connected, no longer need it
-                del currLoopsMap[lastBottom]
-                currLoopsMap[lastTPrev] = lastBSucc
-                currLoopsMap[lastBSucc] = lastTPrev
-
-                # add to couples list
-                neighCouples[lastTop] = lastBottom
-                neighCouples[lastBottom] = lastTop
+            firstext = not firstext # switch between first and last element (that have more priority for being analyzed)
 
     # add last couple
     neighCouples[topHalf.first] = bottomHalf.first
     neighCouples[bottomHalf.first] = topHalf.first
 
-    print("neighCouples:", neighCouples)
+    #print("neighCouples:", neighCouples)
     return neighCouples
 
 def rebuildPath(path, loopsMap, pairedNeighbours, nIndex):

@@ -178,8 +178,9 @@ def graphWithColors(subPlt, xArr, yArr):
     NPOINTS = len(xArr)
     #defining an array of colors  
     colors = np.linspace(0, 255, NPOINTS)
+    sizes = np.full(NPOINTS, 1.0)
     #applies the custom color map along with the color sequence
-    subPlt.scatter(xArr, yArr, alpha=0.70, c= colors, cmap=plt.get_cmap('rainbow'))
+    subPlt.scatter(xArr, yArr, s=sizes, alpha=0.70, c= colors, cmap=plt.get_cmap('rainbow'))
 
 # MAIN
 def main():

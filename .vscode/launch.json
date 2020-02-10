@@ -2,7 +2,6 @@
     "version": "0.2.0",
     "configurations": [
 
-
         {
             "name": "default",
             "type": "python",
@@ -24,7 +23,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["cube.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+            "args": ["cube.obj", "-t", "0.03", "-n", "1", "-a", "1", "--drawGraph"]
         },
         {
             "name": "draw circle",
@@ -40,15 +39,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["monkey.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
+            "args": ["monkey.obj", "-t", "0.2", "-n", "1", "-a", "1", "--drawGraph"]
         },
-        {
-            "name": "draw torus",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": ["torus.obj", "-t", "0.01", "-n", "1", "-a", "1", "--drawGraph"]
-        }
     ]
 }
