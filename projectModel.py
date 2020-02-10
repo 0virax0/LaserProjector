@@ -4,6 +4,7 @@ import struct
 import sys, argparse
 import numpy as np
 import matplotlib.pyplot as plt 
+from matplotlib import cm
 import simpleaudio as sa
 import math
 import networkx as nx
@@ -119,8 +120,8 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
         
         # fill drawing
         def smoothingFun(t):
-            #return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
-            return 1.0
+            return (math.sin(math.pi * (t-0.5)) + 1) / 2 # sine accounts for actuator acceleration
+            #return 1.0
 
         def positionInterp(startCoords, endCoords, completion):   # smooth linearly based on position
             return [startCoords[0] + (endCoords[0] - startCoords[0]) * smoothingFun(completion), startCoords[1] + (endCoords[1] - startCoords[1]) * smoothingFun(completion)]
@@ -155,9 +156,10 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
 
     #plot result
     if drawGraph:
-        plt.subplot(311)
+        #plt.subplot(311)
         #plt.plot(drawingGraph[0], drawingGraph[1], "bo", signal[0], signal[1], "k")
-        plt.plot(drawingGraph[0], drawingGraph[1], "bo")
+        #plt.plot(drawingGraph[0], drawingGraph[1], "bo")
+        graphWithColors(plt.figure().add_subplot(311), drawingGraph[0], drawingGraph[1])
         plt.subplot(312)
         plt.plot(np.linspace(0.0, drawTime, len(drawing[0])), drawing[0])
         plt.subplot(313)
@@ -170,6 +172,14 @@ def drawSegs(segments, drawTime, draws, amplitude, drawGraph):  #segs, time for 
         audio = audio.astype(np.int16)
         play_obj = sa.play_buffer(audio, 2, 2, samplingRate)
         play_obj.wait_done()
+
+def graphWithColors(subPlt, xArr, yArr):
+    MAP='winter'
+    NPOINTS = len(xArr)
+    #defining an array of colors  
+    colors = np.linspace(0, 255, NPOINTS)
+    #applies the custom color map along with the color sequence
+    subPlt.scatter(xArr, yArr, alpha=0.70, c= colors, cmap=plt.get_cmap('rainbow'))
 
 # MAIN
 def main():
