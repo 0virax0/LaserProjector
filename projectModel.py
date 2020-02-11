@@ -31,7 +31,7 @@ def eulerCicle(graph):
 
     return circuit_edges
 
-def optimizedEulerian(graph, model, circuit_edges):
+def optimizedEulerian(model, circuit_edges):
     # optimize eulerian circuit using softPath optimizer
     circuit = []    #get nodes in circuit
     for n in circuit_edges:
@@ -42,7 +42,7 @@ def optimizedEulerian(graph, model, circuit_edges):
     for n in model.vertices:
         positions.append((n[0], n[1]))
 
-    optCircuit = softPath(graph, positions, circuit)
+    optCircuit = softPath(model.graph, positions, circuit)
 
     # transform nodes circuit back in circuit edges
     circuit_edges = []
@@ -53,38 +53,15 @@ def optimizedEulerian(graph, model, circuit_edges):
 
 # get a list of all model's segments in draw order
 def getSegs(model):
-    segments = []   #segments with vertex index
-    vSegments = []  #segments in vertex coordinates  
-    encounteredEdge = dict()   #we don't want a graph with repeated edges
-
-    for face in model.faces:
-        fList = face[0]  #list with vertex indexes as they appear unfolding the face
-        fList.append(face[0][0])    #repeat first vertex to close the face
-
-        for i in range(len(fList)-1):
-            start = fList[i]
-            end = fList[i+1]
-            # register encounter
-            if ((start,end) not in encounteredEdge) and ((end,start) not in encounteredEdge):
-                encounteredEdge[(start,end)] = True
-                segments.append((start, end))
-
-    # fill segments indexes with vertex data
-    for ends in segments:
-        vSegments.append((model.vertices[ends[0]-1], model.vertices[ends[1]-1]))
-
-    # use segments to create an edge graph and calculate distances with vSegments 
-    graph = nx.MultiGraph()
-    for i in range(len(segments)):
-        length = np.linalg.norm(np.subtract(vSegments[i][1], vSegments[i][0]), 2)
-        graph.add_edge(*segments[i], distance = length) # graph node name is the (int) index in segments
+    # I expect a model with a graph, vertices list (xy positions)
+    # I expect a nx graph with int node id and for each arc its length as attribute
 
     # solve chinese postman problem on graph
     # result is in the form (6, 2)
     #                  node1_| |_node2 index 
-    circuit_edges = eulerCicle(graph)
+    circuit_edges = eulerCicle(model.graph)
 
-    optimized_edges = optimizedEulerian(graph, model, circuit_edges)
+    optimized_edges = optimizedEulerian(model, circuit_edges)
 
     # get vertex positions in order
     orderedVsegs = []
@@ -193,8 +170,8 @@ def main():
     parser.add_argument("--drawGraph", action="store_true", help="visualize graph")
     args = parser.parse_args()
 
-    obj = OBJ(args.file)
-    segs = getSegs(obj)
+    model = OBJ(args.file)
+    segs = getSegs(model)
 
     drawSegs(segs, args.drawTime, args.draws, args.amplitude, args.drawGraph)
 

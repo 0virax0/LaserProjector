@@ -1,11 +1,21 @@
-class OBJ:
-    def __init__(self, filename):
-        """Loads an OBJ file without materials """
-        self.vertices = []
-        self.normals = []
-        self.texcoords = []
-        self.faces = []
+import numpy as np
+import networkx as nx
 
+class OBJ:
+    """Loads an OBJ file without materials """
+    vertices = []
+    normals = []
+    texcoords = []
+    faces = []
+
+    segments = []   #segments with vertex index
+    vSegments = []  #segments in vertex coordinates  
+
+    graph = {}
+
+    def __init__(self, filename):
+
+        # write verices, normals, texcoords, faces from model
         for line in open(filename, "r"):
             if line.startswith("#"): continue
             values = line.split()
@@ -32,4 +42,33 @@ class OBJ:
                     else:
                         norms.append(0)
                 self.faces.append((face, norms, texcoords))
+        self.getSegs()
+        self.getGraph()
+    
+    # get segments and vSegments
+    def getSegs(self):
+        encounteredEdge = dict()   #we don't want a graph with repeated edges
+
+        for face in self.faces:
+            fList = face[0]  #list with vertex indexes as they appear unfolding the face
+            fList.append(face[0][0])    #repeat first vertex to close the face
+
+            for i in range(len(fList)-1):
+                start = fList[i]
+                end = fList[i+1]
+                # register encounter
+                if ((start,end) not in encounteredEdge) and ((end,start) not in encounteredEdge):
+                    encounteredEdge[(start,end)] = True
+                    self.segments.append((start, end))
+
+        # fill segments indexes with vertex data
+        for ends in self.segments:
+            self.vSegments.append((self.vertices[ends[0]-1], self.vertices[ends[1]-1]))
+
+    def getGraph(self):
+        # use segments to create an edge graph and calculate distances with vSegments 
+        self.graph = nx.MultiGraph()
+        for i in range(len(self.segments)):
+            length = np.linalg.norm(np.subtract(self.vSegments[i][1], self.vSegments[i][0]), 2)
+            self.graph.add_edge(*self.segments[i], distance = length) # graph node name is the (int) index in segments
 
