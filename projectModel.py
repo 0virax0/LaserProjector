@@ -9,6 +9,7 @@ import simpleaudio as sa
 import math
 import networkx as nx
 from OBJloader import *
+from graphLoader import *
 from postman_problems.tests.utils import create_mock_csv_from_dataframe
 from postman_problems.stats import calculate_postman_solution_stats
 from postman_problems.solver import rpp, cpp
@@ -168,9 +169,13 @@ def main():
     parser.add_argument("-n", "--draws", action="store", type=int, default=200)
     parser.add_argument("-a", "--amplitude", action="store", type=float, default=1.0)
     parser.add_argument("--drawGraph", action="store_true", help="visualize graph")
+    parser.add_argument("--fromGraphml", action="store_true", help="get graph from a graphml file instead")
     args = parser.parse_args()
 
-    model = OBJ(args.file)
+    if args.fromGraphml == True:
+        model = graphml(args.file)
+    else:
+        model = OBJ(args.file)
     segs = getSegs(model)
 
     drawSegs(segs, args.drawTime, args.draws, args.amplitude, args.drawGraph)
