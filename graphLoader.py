@@ -8,7 +8,6 @@ class graphml:
 
     def __init__(self, filename):
         self.graph = nx.read_graphml(filename, node_type= int, edge_key_type=int)
-        print(self.graph)
 
         # get positions of nodes
         for n in self.graph.nodes():
@@ -24,9 +23,10 @@ class graphml:
         for indexCoord in range(len(self.vertices)):
             self.vertices[indexCoord] = [self.vertices[indexCoord][0]/max, self.vertices[indexCoord][1]/max]
 
-        # add length attibute to every edge
+        # add length attibute to every edge 
         for n, nbrs in self.graph.adj.items():
             for nbr, _ in nbrs.items():
                 length = np.linalg.norm(np.subtract(self.vertices[n], self.vertices[nbr]), 2)
-                self.graph[n][nbr]['distance'] = length
+                self.graph.add_edge(n,nbr, distance = length)
+                self.graph.edges[n,nbr].pop('id', None) # the eulerian plugin complains otherwise
 

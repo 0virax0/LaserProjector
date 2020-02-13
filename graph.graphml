@@ -14,74 +14,57 @@
 <data key="r">153</data>
 <data key="g">153</data>
 <data key="b">153</data>
-<data key="x">-703.76434</data>
-<data key="y">542.8434</data>
+<data key="x">-846.3452</data>
+<data key="y">656.1642</data>
 </node>
 <node id="1">
 <data key="size">10.0</data>
 <data key="r">153</data>
 <data key="g">153</data>
 <data key="b">153</data>
-<data key="x">-538.94574</data>
-<data key="y">549.1062</data>
+<data key="x">-526.9127</data>
+<data key="y">655.1032</data>
 </node>
 <node id="2">
 <data key="size">10.0</data>
 <data key="r">153</data>
 <data key="g">153</data>
 <data key="b">153</data>
-<data key="x">-323.211</data>
-<data key="y">542.5294</data>
+<data key="x">-684.95776</data>
+<data key="y">472.256</data>
 </node>
 <node id="3">
 <data key="size">10.0</data>
 <data key="r">153</data>
 <data key="g">153</data>
 <data key="b">153</data>
-<data key="x">-695.485</data>
-<data key="y">299.18967</data>
+<data key="x">-839.9038</data>
+<data key="y">286.30972</data>
 </node>
 <node id="4">
 <data key="size">10.0</data>
 <data key="r">153</data>
 <data key="g">153</data>
 <data key="b">153</data>
-<data key="x">-554.7312</data>
-<data key="y">288.66687</data>
+<data key="x">-512.9676</data>
+<data key="y">286.30972</data>
 </node>
-<node id="5">
-<data key="size">10.0</data>
-<data key="r">153</data>
-<data key="g">153</data>
-<data key="b">153</data>
-<data key="x">-350.83557</data>
-<data key="y">291.29755</data>
-</node>
-<edge id="0" source="0" target="3">
+<edge id="0" source="0" target="1">
 <data key="weight">1.0</data>
 </edge>
-<edge id="1" source="0" target="4">
+<edge id="1" source="1" target="2">
 <data key="weight">1.0</data>
 </edge>
-<edge id="2" source="0" target="5">
+<edge id="2" source="0" target="2">
 <data key="weight">1.0</data>
 </edge>
-<edge id="3" source="1" target="3">
+<edge id="3" source="2" target="3">
 <data key="weight">1.0</data>
 </edge>
-<edge id="4" source="1" target="4">
+<edge id="4" source="2" target="4">
 <data key="weight">1.0</data>
 </edge>
-<edge id="5" source="1" target="5">
-<data key="weight">1.0</data>
-</edge>
-<edge id="6" source="2" target="3">
-<data key="weight">1.0</data>
-</edge>
-<edge id="7" source="2" target="4">
-<data key="weight">1.0</data>
-</edge>
-<edge id="8" source="2" target="5">
+<edge id="5" source="3" target="4">
 <data key="weight">1.0</data>
 </edge>
 </graph>

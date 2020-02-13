@@ -59,11 +59,11 @@ class OBJ:
                 # register encounter
                 if ((start,end) not in encounteredEdge) and ((end,start) not in encounteredEdge):
                     encounteredEdge[(start,end)] = True
-                    self.segments.append((start, end))
+                    self.segments.append((start-1, end-1)) # OBJ files start from 1
 
         # fill segments indexes with vertex data
         for ends in self.segments:
-            self.vSegments.append((self.vertices[ends[0]-1], self.vertices[ends[1]-1]))
+            self.vSegments.append((self.vertices[ends[0]], self.vertices[ends[1]]))
 
     def getGraph(self):
         # use segments to create an edge graph and calculate distances with vSegments 

@@ -19,16 +19,16 @@ from softPath import *
 def eulerCicle(graph):
     edgelist = nx.to_pandas_edgelist(graph, source='_node1', target='_node2') 
     edgelist_file = create_mock_csv_from_dataframe(edgelist)
-    circuit_cpp_req, graph_cpp_req = cpp(edgelist_file)
+    circuit_cpp_req, _ = cpp(edgelist_file)
     print('Print the CPP solution:')
     
     # solve chinese postman problem on graph
     # result circuit_cpp_req is in the form ('6.0', '2.0', 0, {'distance': 1.05144, 'id': 6, 'augmented': True})
-    #                   node1_|       |_node2 index 
+    #                                   node1_|       |_node2 index 
     # keep only the nodes
     circuit_edges = []
     for e in circuit_cpp_req:
-        circuit_edges.append((int(float(e[0]))-1, int(float(e[1]))-1))
+        circuit_edges.append((int(float(e[0])), int(float(e[1]))))
 
     return circuit_edges
 
